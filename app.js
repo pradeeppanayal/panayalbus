@@ -53,7 +53,7 @@ function updateMap(lat, lng, timestamp) {
     const time = timestamp.toDate();
     const formattedTime = time.toLocaleString(undefined, {
         dateStyle: 'medium',
-        timeStyle: 'short'
+        timeStyle: 'long'
     });
 
     document.getElementById("last-updated").textContent = formattedTime;
