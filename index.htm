@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Live vehicle tracking dashboard using Firebase and Google Maps.">
+  <meta name="author" content="Pradeep C H" />
+  <title>Panayal Bus</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/684/684908.png" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Firebase and app logic -->
+  <script type="module" src="app.js"></script>
+
+  <!-- Google Maps -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3AjczOoecaluT2H_m346BQZCli_s8Zus"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background-color: #1f2937;
+      color: white;
+      padding: 1.2rem 2rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+    }
+
+    #map {
+      width: 100%;
+      height: 70vh;
+    }
+
+    .info {
+      text-align: center;
+      padding: 1rem;
+      background: white;
+      border-top: 1px solid #ddd;
+      font-size: 1rem;
+    }
+
+    .info span {
+      font-weight: 600;
+      color: #1f6feb;
+    }
+
+    footer {
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.875rem;
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Panayal Bus</h1>
+  </header>
+
+  <div id="map"></div>
+
+  <div class="info">
+    Last updated: <span id="last-updated">Waiting for data...</span>
+  </div>
+
+  <footer>
+    &copy; <span id="year"></span> <a href="https://www.owncabsbekal.com/">Own Cabs Bekal</a>. All rights reserved.
+  </footer>
+
+</body>
+
+</html>
