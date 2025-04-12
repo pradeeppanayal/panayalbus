@@ -13,26 +13,28 @@ const firebaseConfig = {
 };
 
 
-
 // 🔥 Initialize Firebase and Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // 🗺️ Initialize Google Map
 let map, marker;
+let lastPosition = null;
 
 function initMap(lat = 37.4219983, lng = -122.084) {
     const position = { lat, lng };
+    lastPosition = position;
+
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 15,
         center: position,
-        disableDefaultUI: true, // Disables all default UI controls
-        mapTypeControl: false,  // Hides the map type (satellite/terrain) control
-        streetViewControl: false, // Hides Pegman
-        fullscreenControl: true ,// Hides fullscreen button
+        disableDefaultUI: true,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
         zoomControl: true,
     });
-    
+
     marker = new google.maps.Marker({
         position,
         map,
@@ -44,11 +46,45 @@ function initMap(lat = 37.4219983, lng = -122.084) {
     });
 }
 
-// 📍 Update marker position and timestamp
+// 📍 Smoothly move marker to new position
+function animateMarker(toLat, toLng) {
+    if (!lastPosition) {
+        lastPosition = { lat: toLat, lng: toLng };
+        marker.setPosition(lastPosition);
+        map.setCenter(lastPosition);
+        return;
+    }
+
+    const steps = 60;
+    const delay = 10; // ms
+    let i = 0;
+
+    const deltaLat = (toLat - lastPosition.lat) / steps;
+    const deltaLng = (toLng - lastPosition.lng) / steps;
+
+    function moveStep() {
+        if (i >= steps) {
+            lastPosition = { lat: toLat, lng: toLng };
+            return;
+        }
+
+        const nextLat = lastPosition.lat + deltaLat * i;
+        const nextLng = lastPosition.lng + deltaLng * i;
+        const nextPosition = { lat: nextLat, lng: nextLng };
+
+        marker.setPosition(nextPosition);
+        map.panTo(nextPosition); // smoother than setCenter
+
+        i++;
+        setTimeout(moveStep, delay);
+    }
+
+    moveStep();
+}
+
+// 🕒 Update timestamp and trigger animation
 function updateMap(lat, lng, timestamp) {
-    const position = { lat, lng };
-    marker.setPosition(position);
-    map.setCenter(position);
+    animateMarker(lat, lng);
 
     const time = timestamp.toDate();
     const formattedTime = time.toLocaleString(undefined, {
