@@ -1,27 +1,49 @@
-// Import Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// ✅ Firebase Config (replace with your actual Firebase config)
+/**
+ *  Author : Pradeep C H
+ *  Version : 1.0.0
+ *  Date : 2025-04-13 
+ */
+
+// ✅ Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyDoxED2FohfU_8Dn4w47Kp7GlmweBz7p94",
     authDomain: "panayal-bus.firebaseapp.com",
     projectId: "panayal-bus",
-    storageBucket: "panayal-bus.firebasestorage.app",
+    storageBucket: "panayal-bus.appspot.com",
     messagingSenderId: "674587216708",
     appId: "1:674587216708:web:1f3a670bd228b91845e511"
 };
-
 
 // 🔥 Initialize Firebase and Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🗺️ Initialize Google Map
-let map, marker;
-let lastPosition = null;
+// 🗺️ Map and marker
+let map, marker, lastPosition = null;
 
-function initMap(lat = 37.4219983, lng = -122.084) {
+// 📦 Fetch last known bus location (does NOT initialize map)
+async function fetchLastKnownLocation() {
+    const locationDoc = doc(db, "vehicle", "location");
+
+    try {
+        const snapshot = await getDoc(locationDoc);
+        const data = snapshot.data();
+
+        if (data && data.lat && data.lng && data.timestamp) {
+            return data;
+        }
+    } catch (err) {
+        console.error("Error fetching last known location:", err);
+    }
+
+    return null;
+}
+
+// 🗺️ Initialize Google Map
+function initMap(lat = 12.424458492863547, lng = 75.05723616200689) {
     const position = { lat, lng };
     lastPosition = position;
 
@@ -46,7 +68,7 @@ function initMap(lat = 37.4219983, lng = -122.084) {
     });
 }
 
-// 📍 Smoothly move marker to new position
+// 📍 Smooth marker animation
 function animateMarker(toLat, toLng) {
     if (!lastPosition) {
         lastPosition = { lat: toLat, lng: toLng };
@@ -82,7 +104,7 @@ function animateMarker(toLat, toLng) {
     moveStep();
 }
 
-// 🕒 Update timestamp and trigger animation
+// 🕓 Update marker + timestamp
 function updateMap(lat, lng, timestamp) {
     animateMarker(lat, lng);
 
@@ -95,16 +117,10 @@ function updateMap(lat, lng, timestamp) {
     document.getElementById("last-updated").textContent = formattedTime;
 }
 
-// 🕒 Update footer year
-document.addEventListener("DOMContentLoaded", () => {
-    document.getElementById('year').textContent = new Date().getFullYear();
-    initMap(); // Initialize map on page load
-    listenForLocationUpdates(); // Start listening for updates
-});
-
-// 🔁 Realtime Firestore updates
+// 🔁 Realtime location updates
 function listenForLocationUpdates() {
     const locationDoc = doc(db, "vehicle", "location");
+
     onSnapshot(locationDoc, (snapshot) => {
         const data = snapshot.data();
         if (data && data.lat && data.lng && data.timestamp) {
@@ -112,3 +128,19 @@ function listenForLocationUpdates() {
         }
     });
 }
+
+// 🚀 On page load
+document.addEventListener("DOMContentLoaded", async () => {
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const lastKnown = await fetchLastKnownLocation();
+
+    if (lastKnown) {
+        initMap(lastKnown.lat, lastKnown.lng);
+        updateMap(lastKnown.lat, lastKnown.lng, lastKnown.timestamp);
+    } else {
+        initMap(); // fallback to default
+    }
+
+    listenForLocationUpdates(); // live updates
+});
