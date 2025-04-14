@@ -184,7 +184,7 @@ function updateMap(lat, lng, timestamp) {
 
 // 🔁 Realtime location updates
 function listenForLocationUpdates() {
-    const locationDoc = doc(db, "vehicle", "location2");
+    const locationDoc = doc(db, "vehicle", "location");
 
     onSnapshot(locationDoc, (snapshot) => {
         const data = snapshot.data();
