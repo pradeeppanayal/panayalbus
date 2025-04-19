@@ -18,6 +18,7 @@ const firebaseConfig = {
     messagingSenderId: "674587216708",
     appId: "1:674587216708:web:1f3a670bd228b91845e511"
 };
+const DEBUG_SIMULATION = false;
 
 // 🔥 Initialize Firebase and Firestore
 const app = initializeApp(firebaseConfig);
@@ -92,7 +93,7 @@ function initMap(lat = 12.424458492863547, lng = 75.05723616200689) {
             fillColor: "#007bff",
             fillOpacity: 1,
             rotation: 0, // initial rotation
-        
+
         }
     });
 }
@@ -116,7 +117,7 @@ function animateMarker(toLat, toLng) {
     // 🔄 Calculate rotation angle
     const newPosition = { lat: toLat, lng: toLng };
     const rotation = calculateHeading(lastPosition, newPosition);
-    const icon = marker.getIcon();
+    const icon = marker.getIcon() || {};
     icon.rotation = rotation;
     marker.setIcon(icon);
 
@@ -139,9 +140,15 @@ function animateMarker(toLat, toLng) {
 
     moveStep();
 }
+setInterval(() => {
+    if (latestTimestamp) {
+        updateLastUpdatedOn();
+    }
+}, 10000); // every 10 seconds
 
-function updateLastUpdatedOn(timestamp) {
-    const time = timestamp.toDate();
+function updateLastUpdatedOn() {
+    if (!latestTimestamp) return;
+    const time = latestTimestamp.toDate();
     const now = new Date();
     const diffMs = now - time;
     const diffSec = Math.max(0, Math.floor(diffMs / 1000));
@@ -160,7 +167,9 @@ function updateLastUpdatedOn(timestamp) {
     });
 
     let timeAgo = "";
-    if (diffSec < 60) {
+    if (diffSec == 0 && diffMin == 0 && diffHr == 0 && diffDay == 0) {
+        timeAgo = 'now';
+    } else if (diffSec < 60) {
         timeAgo = `${diffSec} second${diffSec !== 1 ? 's' : ''} ago`;
     } else if (diffMin < 60) {
         timeAgo = `${diffMin} minute${diffMin !== 1 ? 's' : ''} ago`;
@@ -174,11 +183,13 @@ function updateLastUpdatedOn(timestamp) {
     document.getElementById("last-updated").title = `${formattedTime}`;
 }
 
+let latestTimestamp = null;
 
 // 🕓 Update marker + timestamp
 function updateMap(lat, lng, timestamp) {
     animateMarker(lat, lng);
-    updateLastUpdatedOn(timestamp);
+    latestTimestamp = timestamp;
+    updateLastUpdatedOn();
 
 }
 
@@ -207,8 +218,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         initMap(); // fallback to default
     }
 
-   listenForLocationUpdates(); // live updates
-   //simulateLocationUpdates();
+    if (!DEBUG_SIMULATION) {
+        listenForLocationUpdates(); // live updates
+    }
+    if (DEBUG_SIMULATION) {
+        simulateLocationUpdates();
+    }
 });
 // 🧪 Simulate Firebase-like updates
 function simulateLocationUpdates() {
@@ -244,7 +259,7 @@ function simulateLocationUpdates() {
         { lat: 12.426320, lng: 75.059400 },
         { lat: 12.426410, lng: 75.059500 },
         { lat: 12.426500, lng: 75.059600 },
-    
+
         // 🔄 Turnaround with gradual turn
         { lat: 12.426490, lng: 75.059700 },
         { lat: 12.426470, lng: 75.059800 },
@@ -253,7 +268,7 @@ function simulateLocationUpdates() {
         { lat: 12.426410, lng: 75.060100 },
         { lat: 12.426390, lng: 75.060200 },
         { lat: 12.426370, lng: 75.060300 },
-    
+
         // ◀️ Return Path (mirroring the forward, slightly offset for realism)
         { lat: 12.426280, lng: 75.060200 },
         { lat: 12.426190, lng: 75.060100 },
@@ -291,8 +306,8 @@ function simulateLocationUpdates() {
         { lat: 12.423310, lng: 75.056900 },
         { lat: 12.423220, lng: 75.056800 }
     ];
-    
-    
+
+
 
     let index = 0;
     function sendNext() {
