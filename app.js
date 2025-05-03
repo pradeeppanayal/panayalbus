@@ -107,8 +107,8 @@ function animateMarker(toLat, toLng) {
         return;
     }
 
-    const steps = 10;
-    const delay = 10; // ms
+    const steps = 20;
+    const delay = 20; // ms
     let i = 0;
 
     const deltaLat = (toLat - lastPosition.lat) / steps;
